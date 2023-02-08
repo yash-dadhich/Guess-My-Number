@@ -1,19 +1,69 @@
-import { StyleSheet, ImageBackground } from "react-native"
+import { StyleSheet, ImageBackground, SafeAreaView } from "react-native"
 
 import StartGameScreen from "./screens/StartGameScreen"
 
+import AppLoading from 'expo-app-loading'
+
 import { LinearGradient } from "expo-linear-gradient"
+import GameScreen from "./screens/GameScreen"
+import { useState } from "react"
+import Colors from "./constants/colors"
+import GameOver from "./screens/GameOver"
+import { useFonts } from 'expo-font'
+
+// import AppL from 'expo-app-loading'
 
 export default function App() {
+  const [userNumber, setUserNumber] = useState("")
+  const [gameIsOver, setGameIsOver] = useState(true)
+  const [guessRounds, setGuessRounds] = useState(0)
+
+  const [fontLoaded] = useFonts({
+    'open-sans':require('./assets/fonts/OpenSans-Regular.ttf'),
+    'open-sans-bold':require('./assets/fonts/OpenSans-Bold.ttf'),
+  })
+
+  if(!fontLoaded){
+    return <AppLoading/>
+  }
+
+  function pickedNumberHandler(pickedNumber) {
+    setUserNumber(pickedNumber)
+    setGameIsOver(false)
+  }
+
+  function startNewGameHandler(){
+    setUserNumber(null)
+    setGuessRounds(0)
+  }
+
+  function gameOverHandler(numberOfRounds){
+    setGameIsOver(true)
+    setGuessRounds(numberOfRounds)
+  }
+
+  let screen = <StartGameScreen onPickNumber={pickedNumberHandler} />
+
+  if (userNumber) {
+    screen = <GameScreen userNumber={userNumber} onGameOver={gameOverHandler}/>
+  }
+
+  if (gameIsOver && userNumber) {
+    screen = <GameOver roundsNumber={guessRounds} userNumber={userNumber} onStartNewGame={startNewGameHandler} />
+  }
+
   return (
-    <LinearGradient colors={["#ddb52f", "#4e0329"]} style={styles.rootScreen}>
+    <LinearGradient
+      colors={[Colors.secondary500, Colors.primary600]}
+      style={styles.rootScreen}
+    >
       <ImageBackground
         source={require("./assets/images/backgroung.jpg")}
         resizeMode="cover"
         style={styles.rootScreen}
         imageStyle={styles.backgroundImage}
       >
-        <StartGameScreen />
+        <SafeAreaView style={styles.rootScreen}>{screen}</SafeAreaView>
       </ImageBackground>
     </LinearGradient>
   )
@@ -24,6 +74,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundImage: {
-    opacity: .40,
+    opacity: 0.4,
   },
 })
